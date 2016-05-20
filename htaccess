@@ -1,0 +1,131 @@
+<IfModule mod_suphp.c>
+ suPHP_ConfigPath /home/gpzone2
+ <Files php.ini>
+   order allow,deny
+   deny from all
+ </Files>
+</IfModule>
+
+<FilesMatch "\.(gif|jpg|jpeg|png|swf|css|js|html|ico?|xml|txt|php)$">
+	FileETag none
+</FilesMatch>
+
+<ifmodule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/plain
+AddOutputFilterByType DEFLATE text/html
+AddOutputFilterByType DEFLATE text/xml
+AddOutputFilterByType DEFLATE text/css
+AddOutputFilterByType DEFLATE application/xml
+AddOutputFilterByType DEFLATE application/xhtml+xml
+AddOutputFilterByType DEFLATE application/rss+xml
+AddOutputFilterByType DEFLATE application/javascript
+AddOutputFilterByType DEFLATE application/x-javascript
+</ifmodule>
+
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresDefault A3600
+ExpiresByType image/x-icon A5184000
+ExpiresByType application/x-javascript A5184000
+ExpiresByType text/css A5184000
+ExpiresByType text/javascript A5184000
+ExpiresByType image/gif A5184000
+ExpiresByType image/png A5184000
+ExpiresByType image/jpeg A5184000
+ExpiresByType text/plain A86400
+ExpiresByType application/x-shockwave-flash A5184000
+ExpiresByType video/x-flv A5184000
+ExpiresByType application/pdf A5184000
+ExpiresByType text/html A3600
+ExpiresByType application/xhtml+xml A3600
+ExpiresByType application/xml A3600
+</IfModule>
+
+##
+# @version $Id: htaccess.txt 13415 2009-11-03 15:53:25Z ian $
+# @package Joomla
+# @copyright Copyright (C) 2005 - 2008 Open Source Matters. All rights reserved.
+# @license http://www.gnu.org/copyleft/gpl.html GNU/GPL
+# Joomla! is Free Software
+##
+
+
+#####################################################
+#  READ THIS COMPLETELY IF YOU CHOOSE TO USE THIS FILE
+#
+# The line just below this section: 'Options +FollowSymLinks' may cause problems
+# with some server configurations.  It is required for use of mod_rewrite, but may already
+# be set by your server administrator in a way that dissallows changing it in
+# your .htaccess file.  If using it causes your server to error out, comment it out (add # to
+# beginning of line), reload your site in your browser and test your sef url's.  If they work,
+# it has been set by your server administrator and you do not need it set here.
+#
+#####################################################
+
+##  Can be commented out if causes errors, see notes above.
+# Options +FollowSymLinks
+
+#  mod_rewrite in use
+
+RewriteEngine On
+RewriteCond %{HTTP_HOST} ^guineapigzone\.com$ [NC]
+RewriteRule ^(.*)$ http://www.guineapigzone.com/$1 [R=301,L]
+RedirectMatch 301 /c-and-c-cages-guinea-pigs(.*) http://www.guineapigcagesstore.com/$1
+RedirectMatch 301 /c-and-c-guinea-pig-cages(.*) http://www.guineapigcagesstore.com/$1
+RewriteRule  http://www.guineapigzone.com/profile/(.*) http://www.guineapigzone.com/login/profile/$1
+
+#RedirectMatch 301 /guinea-pigs/(.*) http://www.guineapigfinder.com/guineapigs/
+#RedirectMatch 301 /guinea-pigs-for-sale-adoption/(.*) http://www.guineapigfinder.com/guineapigs/latest-adoptables/
+#RedirectMatch 301 /guinea-pig-shelters-rescues/(.*) http://www.guineapigfinder.com/rescues/shelters
+#RedirectMatch 301 /coroplast-online-sites/(.*) http://www.guineapigzone.com/supplies/coroplast
+#RedirectMatch 301 /coroplast-local-listings/(.*) http://www.guineapigzone.com/supplies/coroplast
+
+# Parse .thtml files as .php
+AddType application/x-httpd-php .thtml
+
+########## Begin - Rewrite rules to block out some common exploits
+## If you experience problems on your site block out the operations listed below
+## This attempts to block the most common type of exploit `attempts` to Joomla!
+#
+## Deny access to extension xml files (uncomment out to activate)
+#<Files ~ "\.xml$">
+#Order allow,deny
+#Deny from all
+#Satisfy all
+#</Files>
+## End of deny access to extension xml files
+RewriteCond %{QUERY_STRING} mosConfig_[a-zA-Z_]{1,21}(=|\%3D) [OR]
+# Block out any script trying to base64_encode crap to send via URL
+RewriteCond %{QUERY_STRING} base64_encode.*\(.*\) [OR]
+# Block out any script that includes a <script> tag in URL
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+# Block out any script trying to set a PHP GLOBALS variable via URL
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [OR]
+# Block out any script trying to modify a _REQUEST variable via URL
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2})
+# Send all blocked request to homepage with 403 Forbidden error!
+RewriteRule ^(.*)$ index.php [F,L]
+#
+########## End - Rewrite rules to block out some common exploits
+
+# Parse .thtml files as .php
+AddType application/x-httpd-php .thtml
+
+
+#  Uncomment following line if your webserver's URL
+#  is not directly related to physical file paths.
+#  Update Your Joomla! Directory (just / for root)
+
+RewriteBase /
+
+
+########## Begin - Joomla! core SEF Section
+#
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/index.php
+RewriteCond %{REQUEST_URI} (/|\.php|\.html|\.htm|\.feed|\.pdf|\.raw|/[^.]*)$  [NC]
+RewriteRule (.*) index.php
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
+#
+########## End - Joomla! core SEF Section
